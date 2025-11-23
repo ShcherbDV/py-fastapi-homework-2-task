@@ -33,7 +33,6 @@ class MovieBase(BaseModel):
     status: str
     budget: float
     revenue: float
-    country_id: int
     country: CountryBase
     genres: list[GenreBase]
     actors: list[ActorBase]
