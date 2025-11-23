@@ -1,3 +1,4 @@
+import datetime
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -29,15 +30,16 @@ async def create_movie(movie: MovieCreateSchema, db: AsyncSession = Depends(get_
 
     if (
         len(movie.name) > 255
-        or (100 < movie.score < 0)
+        or movie.score < 0
+        or movie.score > 100
         or movie.budget < 0
         or movie.revenue < 0
-        or movie.date > (movie.date + timedelta(days=365))
+        or movie.date > (datetime.date.today() + timedelta(days=365))
     ):
         raise HTTPException(status_code=400, detail="Invalid input data.")
 
     country_obj = await db.scalar(
-        select(CountryModel).where(CountryModel.name == movie.country)
+        select(CountryModel).where(CountryModel.code == movie.country)
     )
 
     if not country_obj:
@@ -191,7 +193,7 @@ async def delete_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
     return None
 
 
-@router.put("/movies/{movie_id}/", status_code=200)
+@router.patch("/movies/{movie_id}/", status_code=200)
 async def update_movie(
     movie_id: int, movie: MovieUpdateSchema, db: AsyncSession = Depends(get_db)
 ):
@@ -211,8 +213,17 @@ async def update_movie(
             status_code=404, detail="Movie with the given ID was not found."
         )
 
-    if movie.score > 100 or db_movie.score < 0:
-        raise HTTPException(status_code=400, detail="Invalid input data.")
+    if movie.score is not None:
+        if movie.score > 100 or movie.score < 0:
+            raise HTTPException(status_code=400, detail="Invalid input data.")
+
+    if movie.budget is not None:
+        if movie.budget < 0:
+            raise HTTPException(status_code=400, detail="Invalid input data.")
+
+    if movie.revenue is not None:
+        if movie.revenue < 0:
+            raise HTTPException(status_code=400, detail="Invalid input data.")
 
     update_data = movie.dict(exclude_unset=True)
     for key, value in update_data.items():

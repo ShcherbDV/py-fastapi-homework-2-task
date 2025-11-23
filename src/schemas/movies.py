@@ -68,13 +68,9 @@ class MovieUpdateSchema(BaseModel):
     date: Optional[datetime.date] = None
     score: Optional[float] = None
     overview: Optional[str] = None
-    budget: Optional[int] = None
-    revenue: Optional[int] = None
-    country_id: Optional[int] = None
-    country: Optional[CountryBase] = None
-    genres: Optional[list[GenreBase]] = None
-    actors: Optional[list[ActorBase]] = None
-    languages: Optional[list[LanguageBase]] = None
+    status: Optional[str] = None
+    budget: Optional[float] = None
+    revenue: Optional[float] = None
 
     class Config:
         from_attributes = True
